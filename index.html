@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Cream Tic-Tac-Toe</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            background-color: #fefae0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #sprinkleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .swirl {
+            position: absolute;
+            width: 40vw;
+            height: 40vw;
+            min-width: 200px;
+            min-height: 200px;
+            background: rgba(255, 182, 193, 0.4);
+            border-radius: 50%;
+            z-index: 0;
+            animation: bounceSwirl 8s infinite ease-in-out;
+        }
+        .swirl1 { top: -5%; left: -5%; animation-delay: 0s; }
+        .swirl2 { bottom: -5%; right: -5%; animation-delay: 4s; }
+
+        @keyframes bounceSwirl {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, 30px) scale(1.1); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #ff007f;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px #ffb6c1;
+            letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+
+        @media (min-width: 480px) {
+            h1 { font-size: 3.5rem; }
+        }
+
+        .menu-btn {
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            background-color: #fb6f92;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #ffb6c1;
+            font-family: inherit;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        .menu-btn:hover { background-color: #ff007f; transform: translateY(-2px); }
+        .menu-btn:active { transform: translateY(2px); }
+        
+        #startBtn { background-color: #ffb703; box-shadow: 0 5px 0px #fb8500; }
+        #startBtn:hover { background-color: #fb8500; }
+
+        /* Custom styling for the Play Again button */
+        #playAgainBtn {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            background-color: #2ed573;
+            box-shadow: 0 5px 0px #26af5f;
+            z-index: 4;
+        }
+        #playAgainBtn:hover { background-color: #26af5f; }
+
+        #status {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #4a4a4a;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 16px;
+            border-radius: 15px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background-color: #ddb892;
+            background-image: linear-gradient(45deg, #b5835a 25%, transparent 25%), 
+                              linear-gradient(-45deg, #b5835a 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #b5835a 75%), 
+                              linear-gradient(-45deg, transparent 75%, #b5835a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            box-sizing: border-box;
+        }
+
+        .cell {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+            transition: transform 0.1s;
+            position: relative;
+        }
+
+        .scoop-graphic {
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            border: 2px solid #555;
+            box-shadow: inset -6px -6px 0px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .overlay-screen {
+            position: fixed;
+            z-index: 10;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #fefae0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .setup-notice {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.6);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+
+        .flavor-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        @media (min-width: 480px) {
+            .flavor-options { flex-direction: row; justify-content: center; }
+        }
+
+        .flavor-card {
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            border: 4px solid #ddb892;
+            cursor: pointer;
+            width: 80%;
+            max-width: 180px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            box-shadow: 0 4px 0 #ddb892;
+            transition: transform 0.1s;
+        }
+
+        @media (min-width: 480px) {
+            .flavor-card {
+                flex-direction: column;
+                justify-content: center;
+                padding: 20px;
+                width: 130px;
+                box-shadow: 0 6px 0 #ddb892;
+            }
+        }
+
+        .flavor-card:hover { transform: translateY(-2px); }
+        
+        .flavor-card .scoop-graphic {
+            width: 45px;
+            height: 45px;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 480px) {
+            .flavor-card .scoop-graphic { width: 70px; height: 70px; }
+        }
+
+        .flavor-name {
+            font-weight: bold;
+            color: #4a4a4a;
+            font-size: 1rem;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 20; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.4); 
+            align-items: center; justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 100%;
+            text-align: left;
+            border: 4px solid #fb6f92;
+            font-size: 0.95rem;
+        }
+        #closeModalBtn {
+            display: block; margin: 15px auto 0 auto; padding: 10px 20px;
+            background-color: #fb6f92; color: white; border: none;
+            border-radius: 20px; cursor: pointer; font-weight: bold; font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="swirl swirl1"></div>
+    <div class="swirl swirl2"></div>
+
+    <canvas id="sprinkleCanvas"></canvas>
+
+    <div id="introScreen" class="overlay-screen">
+        <h1>Ice Cream Shop</h1>
+        <div class="setup-notice">👥 Grab a friend to play with!</div>
+        <button id="startBtn" class="menu-btn" onclick="startGameFlow()">Start Game</button>
+        <button class="menu-btn" onclick="toggleModal(true)">How to Play</button>
+    </div>
+
+    <div id="flavorScreen" class="overlay-screen" style="display: none;">
+        <h1 id="selectionTitle">Player X: Choose Your Flavor!</h1>
+        <div class="flavor-options" id="flavorOptionsContainer"></div>
+    </div>
+
+    <div class="game-container">
+        <h1>Ice Cream Shop</h1>
+        <div id="status">Ready to Order!</div>
+
+        <div class="board" id="gameBoard">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <button id="playAgainBtn" class="menu-btn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <div id="rulesModal" class="modal">
+        <div class="modal-content">
+            <h2>How to Play</h2>
+            <ol>
+                <li>Find a friend! This is a local two-player pass-and-play game.</li>
+                <li>Each player picks their favorite ice cream flavor from a dynamic daily menu.</li>
+                <li>Take turns placing your custom scoops down on the waffle cone grid.</li>
+                <li>Connect 3 scoops in a row horizontally, vertically, or diagonally to win!</li>
+                <li>Once the match concludes, click "Play Again" to pick fresh flavors!</li>
+            </ol>
+            <button id="closeModalBtn" onclick="toggleModal(false)">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        const flavorPool = [
+            { name: "Strawberry", color: "#ff85a1" },
+            { name: "Mint Chip", color: "#a8e6cf" },
+            { name: "Chocolate", color: "#7f5539" },
+            { name: "Vanilla", color: "#fffae0" }, 
+            { name: "Bubblegum", color: "#ffc6ff" },
+            { name: "Mango Sorbet", color: "#ffb703" },
+            { name: "Pistachio", color: "#b9fbc0" },
+            { name: "Blue Raz", color: "#90e0ef" },
+            { name: "Cotton Candy", color: "#a0c4ff" },
+            { name: "Matcha", color: "#9ef01a" },
+            { name: "Coffee", color: "#b07d62" },
+            { name: "Lemon Ice", color: "#fff000" }, 
+            { name: "Wild Berry", color: "#cfbaf0" },
+            { name: "Orange Cream", color: "#fbc490" },
+            { name: "Caramel", color: "#f3c68f" }
+        ];
+
+        const cells = document.querySelectorAll('.cell');
+        const statusElement = document.getElementById('status');
+        const introScreen = document.getElementById('introScreen');
+        const flavorScreen = document.getElementById('flavorScreen');
+        const selectionTitle = document.getElementById('selectionTitle');
+        const optionsContainer = document.getElementById('flavorOptionsContainer');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const canvas = document.getElementById('sprinkleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentPlayer = 'X';
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let isGameActive = true;
+
+        let playerXFlavor = null;
+        let playerOFlavor = null;
+        let currentOptions = [];
+        let sprinkles = [];
+        let animationFrameId = null;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+
+        function startGameFlow() {
+            introScreen.style.display = 'none';
+            setupFlavorSelection();
+        }
+
+        function setupFlavorSelection() {
+            optionsContainer.innerHTML = "";
+            selectionTitle.textContent = `Player ${currentPlayer}: Choose Your Flavor!`;
+            
+            let availableFlavors = flavorPool;
+            if (currentPlayer === 'O' && playerXFlavor) {
+                availableFlavors = flavorPool.filter(f => f.name !== playerXFlavor.name);
+            }
+
+            let shuffled = [...availableFlavors].sort(() => 0.5 - Math.random());
+            currentOptions = shuffled.slice(0, 3);
+
+            currentOptions.forEach((flavor, index) => {
+                const card = document.createElement('div');
+                card.className = 'flavor-card';
+                card.addEventListener('click', () => pickOption(index));
+                card.innerHTML = `
+                    <div class="scoop-graphic" style="background-color: ${flavor.color}"></div>
+                    <div class="flavor-name">${flavor.name}</div>
+                `;
+                optionsContainer.appendChild(card);
+            });
+            
+            flavorScreen.style.display = 'flex';
+        }
+
+        function pickOption(index) {
+            const chosenFlavor = currentOptions[index];
+            if (currentPlayer === 'X') {
+                playerXFlavor = chosenFlavor;
+                currentPlayer = 'O';
+                setupFlavorSelection();
+            } else {
+                playerOFlavor = chosenFlavor;
+                currentPlayer = 'X';
+                flavorScreen.style.display = 'none';
+                updateStatusText();
+            }
+        }
+
+        function handleCellClick(e) {
+            let targetCell = e.target;
+            while (targetCell && !targetCell.classList.contains('cell')) {
+                targetCell = targetCell.parentElement;
+            }
+            if (!targetCell) return;
+
+            const clickedIndex = parseInt(targetCell.getAttribute('data-index'));
+            if (gameState[clickedIndex] !== "" || !isGameActive) return;
+
+            const activeFlavor = currentPlayer === 'X' ? playerXFlavor : playerOFlavor;
+            gameState[clickedIndex] = currentPlayer;
+            targetCell.innerHTML = `<div class="scoop-graphic" style="background-color: ${activeFlavor.color}"></div>`;
+
+            checkResult();
+        }
+
+        function checkResult() {
+            let roundWon = false;
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] !== "" && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                const winnerFlavor = currentPlayer === 'X' ? playerXFlavor : playerOFlavor;
+                statusElement.textContent = `${winnerFlavor.name} Wins! 🍦`;
+                isGameActive = false;
+                explodeSprinkles();
+                playAgainBtn.style.display = 'block'; // Show the reset button
+                return;
+            }
+
+            if (!gameState.includes("")) {
+                statusElement.textContent = "Meltdown! It's a Tie! 🍧";
+                isGameActive = false;
+                playAgainBtn.style.display = 'block'; // Show the reset button
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateStatusText();
+        }
+
+        function updateStatusText() {
+            const activeFlavor = currentPlayer === 'X' ? playerXFlavor : playerOFlavor;
+            statusElement.textContent = `${activeFlavor.name}'s Turn`;
+        }
+
+        function explodeSprinkles() {
+            const boardRect = document.getElementById('gameBoard').getBoundingClientRect();
+            const centerX = boardRect.left + (boardRect.width / 2);
+            const centerY = boardRect.top + (boardRect.height / 2);
+            const colors = ["#ff4757", "#2ed573", "#1e90ff", "#ffa502", "#ff6b81", "#ffffff", "#eccc68"];
+
+            sprinkles = [];
+            for (let i = 0; i < 100; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 3;
+                sprinkles.push({
+                    x: centerX,
+                    y: centerY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    width: Math.random() * 3 + 3,
+                    height: Math.random() * 8 + 8,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+            animateSprinkles();
+        }
+
+        function animateSprinkles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let activeParticles = false;
+
+            sprinkles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2;
+                p.rotation += p.rotationSpeed;
+
+                if (p.y < canvas.height && p.x > 0 && p.x < canvas.width) {
+                    activeParticles = true;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.width / 2, -p.height / 2, p.width, p.height);
+                    ctx.restore();
+                }
+            });
+
+            if (activeParticles) {
+                animationFrameId = requestAnimationFrame(animateSprinkles);
+            }
+        }
+
+        function resetGame() {
+            cancelAnimationFrame(animationFrameId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            playAgainBtn.style.display = 'none'; // Hide button for next round
+            currentPlayer = 'X';
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            isGameActive = true;
+            playerXFlavor = null;
+            playerOFlavor = null;
+            cells.forEach(cell => cell.innerHTML = "");
+            setupFlavorSelection();
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('rulesModal');
+            modal.style.display = show ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>
